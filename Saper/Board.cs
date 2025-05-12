@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace Saper
 {
 
@@ -35,7 +37,16 @@ public class Board
 
         return label;
     }
-
+    public int GetRowIndex(string label)
+    {
+        label = label.ToUpper();
+        int result = 0;
+        foreach (char c in label)
+        {
+            result = result * 26 + (c - 'A' + 1);
+        }
+        return result - 1;
+    }
     
     private void InitializeCells()
     {
@@ -90,6 +101,52 @@ public class Board
             }
         }
     }
+    public bool RevealCell(int x, int y)
+    {
+        var cell = grid[x, y];
+        if (cell.IsRevealed || cell.IsFlagged)
+            return true; // nic nie robimy
+
+        cell.IsRevealed = true;
+        if (cell.HasMine)
+            return false;
+
+        if (cell.NeighboringMines == 0)
+            FloodFillReveal(x, y);
+
+        return true;
+    }
+    private void FloodFillReveal(int startX, int startY)
+    {
+        var stack = new Stack<(int x,int y)>();
+        stack.Push((startX, startY));
+
+        while (stack.Count > 0)
+        {
+            var (cx, cy) = stack.Pop();
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                int nx = cx + dx, ny = cy + dy;
+                if (nx < 0 || nx >= width || ny < 0 || ny >= height)
+                    continue;
+
+                var neighbor = grid[nx, ny];
+                if (!neighbor.IsRevealed && !neighbor.IsFlagged)
+                {
+                    neighbor.IsRevealed = true;
+                    if (neighbor.NeighboringMines == 0)
+                        stack.Push((nx, ny));
+                }
+            }
+        }
+    }
+    public void ToggleFlag(int x, int y)
+    {
+        var cell = grid[x, y];
+        if (!cell.IsRevealed)
+            cell.IsFlagged = !cell.IsFlagged;
+    }
     public void PrintBoard()
     {
         // Nagłówek kolumn
@@ -118,7 +175,20 @@ public class Board
             Console.Write($"{rowLabel} ");
             for (int x = 0; x < width; x++)
             {
-                Console.Write("| # ");
+                var c = grid[x, y];
+                string symbol;
+                if (c.IsRevealed)
+                {
+                    if (c.HasMine) symbol = " * ";
+                    else if (c.NeighboringMines > 0) symbol = $" {c.NeighboringMines} ";
+                    else symbol = "   ";
+                }
+                else if (c.IsFlagged)
+                    symbol = " F ";
+                else
+                    symbol = " # ";
+
+                Console.Write("|" + symbol);
             }
             Console.WriteLine("|");
 
