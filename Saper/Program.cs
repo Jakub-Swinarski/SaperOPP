@@ -76,6 +76,13 @@ namespace Saper
                         break;
                     }
                 }
+                if (board.IsVictory())
+                {
+                    Console.Clear();
+                    board.PrintBoard();
+                    Console.WriteLine("🎉 Brawo! Znalazłeś/łaś wszystkie miny! Wygrałeś/łaś grę.");
+                    break;
+                }
             }
         }
     }

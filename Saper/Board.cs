@@ -141,6 +141,30 @@ public class Board
             }
         }
     }
+    public bool IsVictory()
+    {
+        int flagsOnMines = 0;
+        int totalFlags = 0;
+
+        for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
+        {
+            var c = grid[x, y];
+            if (c.IsFlagged)
+            {
+                totalFlags++;
+                if (c.HasMine) flagsOnMines++;
+            }
+            else
+            {
+                // nie-flagowane, ale mina? wtedy jeszcze nie wygrał
+                if (c.HasMine) return false;
+            }
+        }
+
+        // warunek: wszystkie miny zflagowane i nie ma zbędnych flag
+        return flagsOnMines == mineCount && totalFlags == mineCount;
+    }
     public void ToggleFlag(int x, int y)
     {
         var cell = grid[x, y];
